@@ -15,12 +15,11 @@ from sklearn import metrics
 import pandas as pd
 import numpy as np
 from sklearn.decomposition import PCA
-
-
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+
+
 def get_data(filename, name = 'dataset', segm = 50,pca = False):
-    
     file = mat73.loadmat(filename)
     data_r = file[name]
     data_r = np.float32(data_r)
@@ -28,29 +27,21 @@ def get_data(filename, name = 'dataset', segm = 50,pca = False):
     data_cnn = data_r[:,:-1]
     date = []
     labels = []
-    
     if pca == True:
         pca = PCA(n_components=6)
-        data_cnn = pca.fit_transform(data_cnn)
-        
+        data_cnn = pca.fit_transform(data_cnn)       
     for i in range(0, int(data_r.shape[0]/segm)):
         date.append(data_cnn[segm*i:segm*(i+1),:])
-        labels.append(np.mean(labels_cnn[segm*i:segm*(i+1)]))
-        
+        labels.append(np.mean(labels_cnn[segm*i:segm*(i+1)]))    
     labels = np.array(labels)
     labels = labels.reshape(-1,1)   
-    
     date = np.array(date)
-
     date = torch.from_numpy(date)
     date = (date - torch.mean(date))/torch.max(date)
     labels = torch.from_numpy(labels)
-    
-
     return date, labels
 
 class Model(pl.LightningModule, nn.Module):
-
     def __init__(self, lr = 1e-3, no_classes = 21, pca = False):
         super(Model, self).__init__()
         self.lr = lr
@@ -65,7 +56,6 @@ class Model(pl.LightningModule, nn.Module):
         ## Netowrk for input shape of (1,50,6) -> PCA use
         if self.pca:
             self.network = nn.Sequential(
-
                 nn.Conv2d(1, 16, kernel_size = 3),
                 nn.ReLU(),
                 nn.Conv2d(16,1, kernel_size = 3 ),
@@ -76,10 +66,8 @@ class Model(pl.LightningModule, nn.Module):
                 nn.Softmax(dim=1)
             ).cuda()
         else:
-
             ## Netowrk for input shape of (1,50,1280)
             self.network =  nn.Sequential(
-
                 nn.Conv2d(1, 16, kernel_size = 3),
                 nn.ReLU(),
                 nn.Conv2d(16,32, kernel_size = 3 ),
@@ -133,7 +121,6 @@ class Model(pl.LightningModule, nn.Module):
         self.log('valid_loss', loss, on_epoch=True)
         return  loss
 
-
     def validation_epoch_end(self,validation_step_outputs):
         try:
             avg_loss = torch.mean(torch.tensor(validation_step_outputs))
@@ -150,7 +137,6 @@ class Model(pl.LightningModule, nn.Module):
         self.log('test_loss', loss)
         y_test = y.detach().cpu()
         y_predict = torch.flatten(out).detach().cpu()
-        
         return y_test, y_predict
     
     def test_step_end(self, output_results):
@@ -158,8 +144,7 @@ class Model(pl.LightningModule, nn.Module):
         y_test= y_test.reshape(-1,1)
         y_predict  = y_predict.reshape(-1,1)
         acc = sklearn.metrics.accuracy_score(y_test,y_predict.round(), normalize=True)
-        prec = sklearn.metrics.precision_score(y_test, y_predict.round(),
-                                                                   average = 'micro', zero_division=1 )
+        prec = sklearn.metrics.precision_score(y_test, y_predict.round(), average = 'micro', zero_division=1 )
         rec = sklearn.metrics.recall_score(y_test, y_predict.round(), average = 'micro', zero_division=1)
         f1 = sklearn.metrics.f1_score(y_test, y_predict.round(), average = 'micro', zero_division=1)
         self.acc.append(np.mean(acc))
@@ -168,9 +153,7 @@ class Model(pl.LightningModule, nn.Module):
         self.f1_score_vect.append(np.mean(f1))
 
     def configure_optimizers(self):
-
         optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
-
         return optimizer
     
 class Data(pl.LightningDataModule):
@@ -182,19 +165,17 @@ class Data(pl.LightningDataModule):
         val_size = int(0.5 * (len(self.input_data) - train_size))
         sizes = (train_size, len(self.input_data) - train_size)
         sizes_val = (len(self.input_data) - train_size - val_size, val_size)
-
         self.train_data, self.test_data = random_split(self.input_data, lengths=sizes)
         self.val_data, self.test_data = random_split(self.test_data, lengths=sizes_val)
 
     def train_dataloader(self):
-
         return DataLoader(self.train_data)
+
     def val_dataloader(self):
         return DataLoader(self.val_data)
 
     def test_dataloader(self):
         return DataLoader(self.test_data)
-
 class LitDataModule(pl.LightningDataModule):
     def __init__(self, batch_size):
         super().__init__()
@@ -222,7 +203,6 @@ class Train_model():
         return data
 
     def train(self,model_title):
-
         trainer = pl.Trainer(gpus=1, max_epochs=self.nr_epochs)
         trainer.tune(self.model)
         trainer.fit(self.model, self.dataset())
@@ -236,19 +216,14 @@ class Train_model():
         print(pl.utilities.model_summary.summarize(self.model, max_depth=1))
         parameters = list(self.model.parameters())
         trainer.save_checkpoint("{}.ckpt".format(model_title))
-        
         return parameters
 
 def choice(choice_dataset = 'raw', filename = r'{}\dataset_few_labels.mat'.format(os.getcwd()) ):
-
     if choice_dataset == 'pca':
         date, labels = get_data(filename, pca=True)
     elif choice_dataset == 'raw':
         date, labels = get_data(filename)
-
     return date, labels
-
-
 
 def run_cnn(option = 'raw' , model_title = 'cnn_raw_data', name_csv = 'results_cnn_pytorch',
             nr_epochs = 50, batch_size = 32, lr = 1e-3):
@@ -271,29 +246,21 @@ def run_cnn(option = 'raw' , model_title = 'cnn_raw_data', name_csv = 'results_c
         labels
         list of metrics = the performance of the algorithm
     '''
-
     date, labels = choice(option)
     if option == 'raw':
         train_model = Train_model(date, labels, pca = False, nr_epochs = nr_epochs, batch_size = batch_size, lr=lr)
     elif option == 'pca':
         train_model = Train_model(date, labels, pca = True,  nr_epochs = nr_epochs, batch_size = batch_size, lr=lr)
-
     train = train_model.train(model_title = model_title)
-
     # metrics
-
     precision = np.mean(getattr(train_model, 'precision_vect'))
     recall = np.mean(getattr(train_model, 'recall_vect'))
     accuracy = np.mean(getattr(train_model, 'acc'))
     f1_score = np.mean(getattr(train_model, 'f1_score_vect'))
-
     lista = [accuracy, recall, precision,f1_score]
     df = pd.DataFrame(data=np.reshape(lista, (1, 4)), columns=['accuracy', 'f1_score', 'recall', 'precision'])
     df.to_csv('{}.csv'.format(name_csv), index=False)
-    print(df)
-
      # loss vs number of iterations
-
     loss_vect = getattr(train_model, 'loss_vect')
     plt.figure()
     plt.plot(range(0, len(loss_vect)), loss_vect)
@@ -306,5 +273,6 @@ def run_cnn(option = 'raw' , model_title = 'cnn_raw_data', name_csv = 'results_c
     return date, labels,lista
 
 
-# date, labels, perf_raw = run_cnn(option= 'raw', nr_epochs=50, model_title='raw_final', name_csv='raw_final')
-date_pca, labels_pca, perf_pca = run_cnn(option= 'pca', nr_epochs=50, model_title='pca_final', name_csv='pca_final')
+if __name__ == '__main__':
+    # date, labels, perf_raw = run_cnn(option= 'raw', nr_epochs=50, model_title='raw_final', name_csv='raw_final')
+    date_pca, labels_pca, perf_pca = run_cnn(option= 'pca', nr_epochs=50, model_title='pca_final', name_csv='pca_final')
