@@ -52,8 +52,6 @@ class Model(pl.LightningModule, nn.Module):
         self.precision_vect = []
         self.recall_vect = []
         self.f1_score_vect = []
-
-        ## Netowrk for input shape of (1,50,6) -> PCA use
         if self.pca:
             self.network = nn.Sequential(
                 nn.Conv2d(1, 16, kernel_size = 3),
@@ -66,7 +64,6 @@ class Model(pl.LightningModule, nn.Module):
                 nn.Softmax(dim=1)
             ).cuda()
         else:
-            ## Netowrk for input shape of (1,50,1280)
             self.network =  nn.Sequential(
                 nn.Conv2d(1, 16, kernel_size = 3),
                 nn.ReLU(),
@@ -86,9 +83,8 @@ class Model(pl.LightningModule, nn.Module):
                 nn.LazyLinear(self.no_classes),
                 nn.Softmax(dim=1)
             ).cuda()
-        #summary(network,(1,50,6))
-        self.loss_func = nn.MSELoss()
-        # self.loss_func = nn.NLLLoss()
+        self.loss_func = nn.CrossEntropyLoss()
+
 
     def forward(self, input_data):
         if input_data.dim() > 3:
