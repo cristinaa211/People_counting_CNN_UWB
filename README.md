@@ -13,7 +13,7 @@ People counting using an IR-UWB radar, based on Artificial Intelligence classifi
 
 
 
-Bibliography
+References
 
 [1] 	T. C. a. G. P. M. I. Marco Cavallaro, "Gaussian Pulse Generator for Millimeter-Wave," IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS—I: REGULAR PAPERS, JUNE , Vols. NO. 6,VOL. 57, 2010. DOI: 10.1109/TCSI.2009.2031706
 [2] 	Y. Rahayu, T. A. Rahman, R. Ngah and P. S. Hall, "Ultra wideband technology and its applications," 2008 5th IFIP International Conference on Wireless and Optical Communications Networks (WOCN '08), 2008, pp. 1-5, doi: 10.1109/WOCN.2008.4542537. 
