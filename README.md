@@ -1,6 +1,5 @@
 # PEOPLE COUNTING IN A COVID-19 AND GDPR CONTEXT, USING AN IR-UWB RADAR, BASED ON ARTIFICIAL INTELLIGENCE ALGORITHMS
 
-Abstract
 
 This repository presents a method for people counting using an IR-UWB radar signals, based on Artificial Intelligence classification algorithms. 
 Ultra-wideband (UWB) impulses have a duration of nanoseconds in the time domain, occupying a very large frequency bandwidth, from 500 MHz up to 7.5 GHz.
