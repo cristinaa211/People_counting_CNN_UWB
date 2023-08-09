@@ -3,7 +3,10 @@ date_complet.mat
 pca_nemediate.mat 
 people_0-10_walking_5m_area.json
 0-15_people_standing_in_a_queue.json
+0-15_people_standing_in_a_queue_1.json
+0-15_people_standing_in_a_queue_2.json
 11-20_people_on_a_density_of_3_persons_per_m2.json
 11-20_people_on_a_density_of_4_persons_per_m2.json
 dataset_json
 people_counting_venv
+readme.txt

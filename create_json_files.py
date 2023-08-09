@@ -27,10 +27,11 @@ def create_json_file(content_list, file_name):
     with open(f"{file_name}.json", 'w') as json_file:
         json.dump(content_list, json_file, indent = 4)
 
-def read_files_dump_to_json(directory, json_file_name, label):
+def read_files_dump_to_json(directory, json_file_name, label, create_two = False):
     """Provides the content of multiple files in the "directory" as lists of float values, 
     creates a json file with the metainformation
-    and creates a json file which is saved in the current directory. 
+    and creates a json file (or two files, depending on the total space occupied) 
+    which is saved in the current directory. 
     The JSON file contains the following information about each radar sample:
     label           : the scenario (Example label = 100 points to the first scenario)
     detailed_label  : contains the scenario given by the first digit and the second and third 
@@ -53,7 +54,14 @@ def read_files_dump_to_json(directory, json_file_name, label):
                             'radar_sample' : file_content.tolist() ,
                             'shape' : list(matrix_dimension), 'type' : str(file_type)}
         json_content.append(json_content_file)
-    create_json_file(json_content, json_file_name)
+    if create_two == False:
+        create_json_file(json_content, json_file_name)
+    else:
+        half_indx = int(len(json_content)/2) if len(json_content) % 2 == 0 else int((len(json_content)+1)/2)
+        create_json_file(json_content[0:half_indx], f"{json_file_name}_1")
+        create_json_file(json_content[half_indx+1:], f"{json_file_name}_2")
+
+
 
 def read_json_file(json_file_path):
     """Returns the content of a JSON file"""
@@ -64,6 +72,6 @@ def read_json_file(json_file_path):
 
 if __name__ == "__main__":
     read_files_dump_to_json(directory="./IR-UWB-Radar-Signal-Dataset-for-Dense-People-Counting-master/0-10 people walking in a 5 m area", json_file_name="people_0-10_walking_5m_area", label = 100)
-    read_files_dump_to_json(directory="./IR-UWB-Radar-Signal-Dataset-for-Dense-People-Counting-master/0-15 people standing in a queue", json_file_name="0-15_people_standing_in_a_queue", label = 200)
+    read_files_dump_to_json(directory="./IR-UWB-Radar-Signal-Dataset-for-Dense-People-Counting-master/0-15 people standing in a queue", json_file_name="0-15_people_standing_in_a_queue", label = 200,create_two=True)
     read_files_dump_to_json(directory="./IR-UWB-Radar-Signal-Dataset-for-Dense-People-Counting-master/11-20 people on a density of 3 persons per m2", json_file_name="11-20_people_on_a_density_of_3_persons_per_m2", label = 300)
     read_files_dump_to_json(directory="./IR-UWB-Radar-Signal-Dataset-for-Dense-People-Counting-master/11-20 people on a density of 4 persons per m2", json_file_name="11-20_people_on_a_density_of_4_persons_per_m2", label = 400)
