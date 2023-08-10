@@ -69,9 +69,3 @@ def read_json_file(json_file_path):
         data = json.load(json_file)
     return data 
 
-
-if __name__ == "__main__":
-    read_files_dump_to_json(directory="./IR-UWB-Radar-Signal-Dataset-for-Dense-People-Counting-master/0-10 people walking in a 5 m area", json_file_name="people_0-10_walking_5m_area", label = 100)
-    read_files_dump_to_json(directory="./IR-UWB-Radar-Signal-Dataset-for-Dense-People-Counting-master/0-15 people standing in a queue", json_file_name="0-15_people_standing_in_a_queue", label = 200,create_two=True)
-    read_files_dump_to_json(directory="./IR-UWB-Radar-Signal-Dataset-for-Dense-People-Counting-master/11-20 people on a density of 3 persons per m2", json_file_name="11-20_people_on_a_density_of_3_persons_per_m2", label = 300)
-    read_files_dump_to_json(directory="./IR-UWB-Radar-Signal-Dataset-for-Dense-People-Counting-master/11-20 people on a density of 4 persons per m2", json_file_name="11-20_people_on_a_density_of_4_persons_per_m2", label = 400)

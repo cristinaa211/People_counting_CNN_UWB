@@ -1,8 +1,7 @@
 import psycopg2
 import json
-from create_json_files import read_json_file
 
-def read_table_postgresql(table_name, database_config):
+def read_table_postgresql(columns = None, table_name = None, database_config = None, limit = None, query = None):
     conn = psycopg2.connect(
         host=database_config['host'],
         port=database_config['port'],
@@ -11,7 +10,10 @@ def read_table_postgresql(table_name, database_config):
         password=database_config['password']
     )    
     cursor = conn.cursor()
-    query = 'select * from Public."{}"'.format(table_name)
+    if query == None:
+        columns_names = columns['columns']
+        if limit : query = 'SELECT {} FROM PUBLIC."{}" LIMIT {}'.format(columns_names, table_name, int(limit))
+        else: query = 'SELECT {} FRPM PUBLIC."{}"'.format(columns_names, table_name)
     cursor.execute(query)
     data = cursor.fetchall()
     headers = [i[0] for i in cursor.description]
@@ -20,7 +22,7 @@ def read_table_postgresql(table_name, database_config):
         cursor.close()
         conn.close()
         print("PostgreSQL connection is closed")
-    return data, headers
+    return headers, data[0]
 
 
 def import_json_to_postgresql(json_filename,table_name, database_config):
