@@ -7,7 +7,7 @@ def plot_radar_signal(data, title):
     """Plots a single received signal from the radar sample"""
     plt.figure(figsize = (10, 5))
     plt.plot(data)
-    plt.xlabel('# Sample (1280 samples = 5 meters range)')
+    plt.xlabel('# Sample ')
     plt.ylabel("Amplitude [V]")
     plt.title(f"{title}")
     plt.savefig("./images_/{}".format(title))
@@ -50,13 +50,15 @@ if __name__ == "__main__":
             "scenario_2" :["people_standing_queue_0_15", "people standing in a queue"],
             "scenario_3":  ["density_3_m2_11_20", "people walking in a room with 3 persons per m2"],
             "scenario_4": ["density_4_m2_11_20" , "people walking in a room with 4 persons per m2",],
-            "processed_data": ["processed_data", "pca features extracted from radar samples"]
+            "processed_data": ["processed_data", ""]
             }
     table_name = tables["processed_data"][0]
-    scenario =  tables["processed_data"][1]
-    number_persons = 105
+    # scenario =  tables["processed_data"][1]
+    scenario = 'in the first'
+    detailed_label = 110
+    number_persons = 10
     shape = (200, 50)
-    data = extract_data_per_no_persons(table_name=table_name, detailed_label=number_persons, database_config=database_config)
+    data = extract_data_per_no_persons(table_name=table_name, detailed_label=detailed_label, database_config=database_config)
     data = np.array(data)
     data_res = np.reshape(data, shape)
     # data_prep = process_data_pipeline(data_res, fs=39*1e9)
