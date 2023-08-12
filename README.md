@@ -10,7 +10,8 @@ The GDPR context refers to the protection of personal data, where an IR-UWB rada
 
 ![image](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/df374e21-7e99-42e4-b628-80d5b97cb697)
 
-The data are pre-processed, by extracting the direct current component, by applying the Running Average method for clutter removal for bandpass filtering in the 5.65 GHz - 7.95 GHz band.
+**The data are pre-processed, by extracting the direct current component, by applying the Running Average method for clutter removal and to remove unwanted frequency components by filtering in the 5.65 GHz - 7.95 GHz band.**
+
 
 ![Radar Sample, 10 persons, people standing in a queue scenario](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/4ffa7e10-acc2-4842-bb7c-5137daa8c10b)
 
@@ -19,6 +20,14 @@ The data are pre-processed, by extracting the direct current component, by apply
 ![Radar Sample, 20 persons, people walking in a room with 4 persons per m2 scenario](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/85d731ec-c60f-424f-ab3e-a27bb0fd4604)
 
 ![Received Signal, 20 persons in the radar range, people walking in a room with 4 persons per m2 scenario](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/dad84559-0f5e-40b0-9a50-a8396d515ace)
+
+
+**To reduce data dimennsionality and to keep the useful information in the same time, Principal Component Analysis method is applied on the pre-processed data.  The number of principal components that are kept is 50. The final data will then be fed to a Convolutional Neural Network.** 
+
+![Radar Sample, 20 persons, in the last scenario](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/02b1a34c-dc60-4569-8fdc-4bae5d390b59)
+
+
+![Received Signal, 20 persons in the radar range, in the last scenario](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/7de4865c-1f9b-4e29-8cb2-c15bba56fb4f)
 
 
 
