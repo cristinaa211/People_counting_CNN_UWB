@@ -4,7 +4,20 @@ from pyspark.sql import SQLContext, Row, SparkSession
 from scipy import signal
 import matplotlib.pyplot as plt
 import numpy as np
+from sklearn.decomposition import PCA
+from pyspark.sql import SparkSession, types
 
+def process_data_pipeline(sig, fs):
+    """Returns processed radar sample"""
+    data_1 = extract_dc_component(sig)
+    data_2 = moving_average_clutter_removal_2d(data_1, 5)
+    data_3 = butter_bandpass_filter(data_2, 5.65*1e9, 7.95*1e9, fs)
+    return data_3
+
+def apply_pca(data, n_components):
+    """Apllies Principal Component Analysis on the data and return n_components principal components"""
+    pca_data = PCA(n_components = n_components).fit_transform(data)
+    return pca_data
 
 def moving_average_clutter_removal_1d(signal, window_size):
     """
@@ -46,17 +59,15 @@ def moving_average_clutter_removal_2d(signal, window_size):
         clutter_removed_signal[row, :] = signal[row, :] - moving_average
     return clutter_removed_signal
 
-def process_data_pipeline(sig, fs):
-    data_1 = extract_dc_component(sig)
-    data_2 = moving_average_clutter_removal_2d(data_1, 5)
-    data_3 = butter_bandpass_filter(data_2, 5.65*1e9, 7.95*1e9, fs)
-    return data_3
+
 
 def butter_bandpass(lowcut, highcut, fs, order=5):
+    """Returns the coefficients of a butter bandpass filter"""
     return signal.butter(order, [lowcut, highcut], fs=fs, btype='band')
 
-def butter_bandpass_filter(data, lowcut, highcut, fs, order=5):
-    b, a = butter_bandpass(lowcut, highcut, fs, order=order)
+def butter_bandpass_filter(data, lowcut, highcut, sampling_rate, order=5):
+    """Applies a butter bandpass filter on the signal"""
+    b, a = butter_bandpass(lowcut, highcut, sampling_rate, order=order)
     return signal.lfilter(b, a, data)
 
 def compute_bandwidth(sig_, sampling_rate, frequency_range=None):
@@ -67,7 +78,6 @@ def compute_bandwidth(sig_, sampling_rate, frequency_range=None):
     sampling_rate (float): The sampling rate in Hz.
     frequency_range (tuple, optional): Frequency range of interest in Hz (start_freq, end_freq).
                                       If not provided, the entire frequency range of the signal is used.
-
     Returns:
     bandwidth : the effective signal bandwidth
     """
@@ -96,16 +106,16 @@ def compute_bandwidth(sig_, sampling_rate, frequency_range=None):
     bandwidth = [min(freq), max(freq)]
     return bandwidth
 
-def extract_dc_component(data):
-    data_prep = data - np.mean(data)
-    return data_prep
+def extract_dc_component(sig):
+    """Extracts the direct current component from the signal"""
+    sig_prep = sig - np.mean(sig)
+    return sig_prep
 
 def spark_read_json(json_file_path):
     spark = SparkSession.builder.master("local").appName("Read_Json_File")\
             .getOrCreate()
     df = spark.read.json(json_file_path, multiLine=True)
     df.show(truncate = 0)
-
 
 def test_spark():
     spark = SparkSession.builder \
@@ -124,6 +134,7 @@ def test_spark():
     df.show()
 
 def read_text_file(filename):
+    """Read json file as a text file with pyspark"""
     spark = SparkSession.builder.master("local").appName("Read_Json_File")\
             .getOrCreate()
     lines = spark.sparkContext.textFile(filename)
@@ -135,7 +146,13 @@ def read_text_file(filename):
     output_df.show()
 
 
-
-if __name__ == "__main__":
-    spark = SparkSession.builder.master("local").appName("Read_Json_File")\
-            .getOrCreate()
+def to_pyspark_dataframe(data, columns):
+    """Creates a spark dataframe from data, having as columns the columns argument"""
+    spark = SparkSession.builder.appName("SaveToSparkDF").getOrCreate()
+    schema = types.StructType([
+                types.StructField(columns[0], types.StringType(), True),
+                types.StructField(columns[1], types.StringType(), True),
+                types.StructField(columns[2], types.ArrayType(types.ArrayType(types.DoubleType(), True), True), True)        ])
+    df = spark.createDataFrame(data, schema = schema)
+    df.printSchema()
+    return df

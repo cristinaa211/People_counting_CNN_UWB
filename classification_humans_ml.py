@@ -1,20 +1,13 @@
 import numpy as np
-from numpy import random
 import pandas as pd
 import sklearn
 import matplotlib.pyplot as plt
 import scipy.io as sio
 import pickle
-from sklearn import metrics
 from sklearn.decomposition import PCA
 from sklearn.metrics import classification_report,precision_score , recall_score , f1_score, confusion_matrix, plot_confusion_matrix, ConfusionMatrixDisplay
 from sklearn.preprocessing import normalize
 from sklearn.model_selection import train_test_split,cross_val_score
-import tensorflow as tf
-from tensorflow import keras
-import datetime
-from tensorflow.keras import layers, models
-import h5py
 from sklearn import neighbors, svm
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
@@ -23,33 +16,19 @@ import os
 
 
 
-class Load_data():
-    def __init__(self, dir_data='datasets', name = 'date_complet', name2 = 'date_complet', norm = False) :
-        self.dir_data = dir_data
-        self.name = name
-        self.norm = norm
-        self.name2 = name2
-        self.path = os.getcwd()
 
-    def load_data(self):
-        dir_data = '{}\{}'.format(self.path, self.dir_data)
-        fname = os.path.join(dir_data, self.name)
-        try: 
-            file = sio.loadmat(fname, mat_dtype = True)
-        except  RuntimeError:
-            file = mat73.loadmat(self.name)
-        data = file[self.name2]
-        labels = data[:,-1]
-        data = np.nan_to_num(data[:, :-1].astype(np.float32))
-        if self.norm == True:
-            data = sklearn.preprocessing.normalize(data[:, :-1].astype(np.float32))
-        return data , labels
+def load_data(filename, norm):
+    data = sio.loadmat(filename, mat_dtype = True)
+    labels = data[:,-1]
+    data = np.nan_to_num(data[:, :-1].astype(np.float32))
+    if norm == True:
+        data = sklearn.preprocessing.normalize(data[:, :-1].astype(np.float32))
+    return data, labels
 
-    def split_data(self, test_size = 0.3): 
-        data, labels = self.load_data()
-        x_train, x_test, y_train, y_test = train_test_split( data, labels, test_size= test_size)
-        return x_train, y_train, x_test, y_test
-        
+def split_data(data, labels, test_size = 0.3): 
+    x_train, x_test, y_train, y_test = train_test_split( data, labels, test_size= test_size)
+    return x_train, y_train, x_test, y_test
+    
 
 class AI_alg():
     
@@ -125,22 +104,8 @@ def get_data(data_r,labels, segm = 50,pca = False):
     date = np.array(date)
     return date, labels
 
-
-def choose_dataset(choice = 'raw', filename = '' , norm = True):
-    if choice == 'hybrid_features':
-        load_data = Load_data(norm= norm)
-    if choice == 'pca_hybrid':
-       load_data = Load_data( name = 'pca_set_features' , name2= 'matr',norm= norm)
-
-    data, labels = load_data.load_data()
-    x_train, x_test, y_train, y_test = train_test_split(data, labels, test_size=0.3)
-    return data, labels, x_train, x_test, y_train, y_test
-
-choice1 = 'hybrid_features'
-choice2 = 'pca_hybrid'
-
-def run_alg_ml(choice = choice1 , name_csv = 'results_ml'):
-    data, labels, x_train, x_test, y_train, y_test = choose_dataset(choice)
+def run_alg_ml(data,labels, choice , name_csv = 'results_ml'):
+    x_train, x_test, y_train, y_test = split_data(data, labels)
     metrics = []
     lista = ['knn', 'svm', 'mlp']
     for i in lista:
@@ -158,4 +123,4 @@ def run_alg_ml(choice = choice1 , name_csv = 'results_ml'):
 
 if __name__ == '__main__':
     # data,labels, df = run_alg_ml(choice = choice1, name_csv= 'res_ml_compl')
-    data_pca,labels_pca, df_pca = run_alg_ml(choice = choice2, name_csv= 'res_ml_pca')
+    data_pca,labels_pca, df_pca = run_alg_ml(choice = "mlp", name_csv= 'res_ml_pca')
