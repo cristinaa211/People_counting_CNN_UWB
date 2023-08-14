@@ -1,6 +1,7 @@
-from create_json_files import read_json_file
+from tools.create_json_files import read_json_file
 import psycopg2
 import json
+import numpy as np
 
 def read_table_postgresql(columns = None, table_name = None, database_config = None, 
                           limit = None, query = None):
@@ -13,9 +14,8 @@ def read_table_postgresql(columns = None, table_name = None, database_config = N
     )    
     cursor = conn.cursor()
     if query == None:
-        columns_names = columns['columns']
-        if limit : query = 'SELECT {} FROM PUBLIC."{}" LIMIT {}'.format(columns_names, table_name, int(limit))
-        else: query = 'SELECT {} FROM PUBLIC."{}"'.format(columns_names, table_name)
+        if limit : query = 'SELECT {} FROM PUBLIC."{}" LIMIT {}'.format(columns, table_name, int(limit))
+        else: query = 'SELECT {} FROM PUBLIC."{}"'.format(columns, table_name)
     cursor.execute(query)
     data = cursor.fetchall()
     headers = [i[0] for i in cursor.description]
@@ -117,3 +117,12 @@ if __name__ == "__main__":
     data = read_json_file(json_file[0])
     import_data_to_postgresql(data, table_name[0],database_config=database_config)
     import_data_to_postgresql(json_file[1], table_name[0],database_config=database_config)
+
+
+def extract_signal_db(table_name,number_persons, database_config):
+    query = """SELECT radar_sample FROM PUBLIC.{} WHERE number_persons = '{}' LIMIT 1;""".format(table_name, number_persons)
+    headers, data = read_table_postgresql(table_name=table_name,database_config= database_config, limit = 1, query = query)
+    radar_sample = np.array(data)
+    radar_sample_resh = np.reshape(radar_sample, (200,1280))
+    radar_sample_resh_ = radar_sample_resh - np.mean(radar_sample_resh)
+    return headers, radar_sample_resh_

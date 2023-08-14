@@ -12,3 +12,9 @@ people_counting_venv
 readme.txt
 people_counting.pdf
 images_
+models
+lightning_logs
+logs
+feature extraction 
+classification_humans_cnn.py 
+classification_humans_ml.py 
