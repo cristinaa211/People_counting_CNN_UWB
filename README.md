@@ -42,7 +42,7 @@ The dataset is split in training data, validation data and test data. The data a
 ![image](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/aab3c140-482a-4297-8563-b68091abc9a4)
 ![Screenshot from 2023-08-15 17-25-56](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/5d406076-186f-4003-b9a9-12da6874d0eb)
 
-**CONSIDERING THE NUMBER OF PEOPLE**
+**CONSIDERING THE NUMBER OF PERSONS**
 
 For the same data but labelled by the number of persons in the radar range, and  the same network's architecture, the hyperparameters in this case are: batch_size = 4, number of epochs = 40, learning rate = 0.0001. In the figure you will find the accuracies and the network's layers:
 
