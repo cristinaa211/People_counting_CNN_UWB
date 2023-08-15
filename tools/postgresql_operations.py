@@ -64,6 +64,14 @@ def  import_processed_data_to_postgresql(data, table_name, database_config):
         cur.close()
         conn.close()
 
+        
+def extract_signal_db(table_name,number_persons, database_config):
+    query = """SELECT radar_sample FROM PUBLIC.{} WHERE number_persons = '{}' LIMIT 1;""".format(table_name, number_persons)
+    headers, data = read_table_postgresql(table_name=table_name,database_config= database_config, limit = 1, query = query)
+    radar_sample = np.array(data)
+    radar_sample_resh = np.reshape(radar_sample, (200,1280))
+    radar_sample_resh_ = radar_sample_resh - np.mean(radar_sample_resh)
+    return headers, radar_sample_resh_
 
 def import_data_to_postgresql(data, table_name, database_config):
     conn = psycopg2.connect(
@@ -119,10 +127,3 @@ if __name__ == "__main__":
     import_data_to_postgresql(json_file[1], table_name[0],database_config=database_config)
 
 
-def extract_signal_db(table_name,number_persons, database_config):
-    query = """SELECT radar_sample FROM PUBLIC.{} WHERE number_persons = '{}' LIMIT 1;""".format(table_name, number_persons)
-    headers, data = read_table_postgresql(table_name=table_name,database_config= database_config, limit = 1, query = query)
-    radar_sample = np.array(data)
-    radar_sample_resh = np.reshape(radar_sample, (200,1280))
-    radar_sample_resh_ = radar_sample_resh - np.mean(radar_sample_resh)
-    return headers, radar_sample_resh_

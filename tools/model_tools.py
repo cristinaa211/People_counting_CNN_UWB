@@ -33,10 +33,9 @@ class FinalPipelineCNNTrainning:
         headers, dataset = read_table_postgresql(columns=columns, table_name=table_name, 
                                                 database_config=database_config, limit=limit)
         labels, data = list(zip(*dataset))
-        self.num_classes = len(set(labels))
         return labels, data 
     
-    def transform_data(self, labels, labels_dict, data):
+    def transform_data(self, labels,  data, labels_dict = None):
         """Encodes labels and transform data to torch arrays
         Args:
             labels           : the lables list 
@@ -46,8 +45,14 @@ class FinalPipelineCNNTrainning:
             labels_  : list of torch tensors representing the encoded lables    
             data     : list of torch arrays, each row representing a sample, each column a feature 
         """
-        labels = [labels_dict[l[0]] for l in labels]
-        labels_ = torch.tensor(labels)
+        if labels_dict != None:
+            labels_ = [labels_dict[l[0]] for l in labels]
+        else: 
+            try:  labels_ = [int(l[2]) if int(l[1]) == '0' else int(l[1:]) for l in labels]
+            except Exception as e:
+                print(e)
+        self.num_classes = len(set(labels_))
+        labels_ = torch.tensor(labels_)
         data = torch.tensor(data)
         return labels_, data
     
@@ -77,8 +82,7 @@ class FinalPipelineCNNTrainning:
     def evaluate_model(self):
         """Evaluates the model on the test dataset and compares training, validation and test accuracy"""
         self.trainer.evaluate_model()
-        acc_train, acc_val, acc_test = self.trainer.compare_accuracies()
-        return acc_train, acc_val, acc_test
+        self.acc_train, self.acc_val, self.acc_test = self.trainer.compare_accuracies()
     
     def save_model(self, model_name, version):
         """Saves the model's parameters along with the model name, version, 
@@ -91,6 +95,9 @@ class FinalPipelineCNNTrainning:
                 "datetime" : datetime.datetime.now().strftime("%Y_%m_%d-%H_%M"),
                 "mean" : getattr(self.dataloader, "mean").numpy().tolist(),
                 "std"  : getattr(self.dataloader, "std").numpy().tolist(), 
+                "training_accuracy" : self.acc_train.cpu().numpy().tolist(),
+                "validation_accuracy": self.acc_val.cpu().numpy().tolist(),
+                "test_accuracy" : self.acc_test.cpu().numpy().tolist()
                 }
         with open(json_file_path, "w") as json_file:
             json.dump(info, json_file, indent = 4)
@@ -100,8 +107,8 @@ class FinalPipelineCNNTrainning:
         """Runs the data extraction, data transformation, dataloader creation, model creation, 
         model training, evaluation and parameters saving"""
         labels, data = self.extract_data_db(columns, table_name, database_config, limit = None)
-        labels_, data_ = self.transform_data(labels, label_dict, data)
-        self.create_dataloader(data_, labels_)
+        labels_, data_ = self.transform_data(labels=labels,data= data, labels_dict=label_dict)
+        self.create_dataloader(data=data_, labels=labels_)
         self.create_cnn_model()
         self.train_model(max_epochs=max_epochs, min_epochs=min_epochs, debug=debug, logger=logger )
         self.evaluate_model()
@@ -155,6 +162,7 @@ class CNN(pl.LightningModule):
         loss = self.loss_fc(outputs, y)
         self.log(f"train_loss", loss, prog_bar=True)
         acc = self.accuracy_metric(outputs, y)
+        self.log("train_acc_epoch",  acc, on_epoch=True, prog_bar=True)
         self.train_acc_tensor.append(acc)
         return loss
     
