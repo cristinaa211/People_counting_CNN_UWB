@@ -1,14 +1,15 @@
 # PEOPLE COUNTING IN A COVID-19 AND GDPR CONTEXT, USING AN IR-UWB RADAR, BASED ON ARTIFICIAL INTELLIGENCE ALGORITHMS
 
 
-This repository presents a method for people counting using an IR-UWB radar signals, based on Artificial Intelligence classification algorithms. 
+This repository presents a method for people counting using IR-UWB radar signals, in the COVID-19 and GDPR context. 
+The purpose is the monitoring of the number of people  inside a room, where a one-meter minimum distance between the persons is required for limiting their number in a given area, which is important to limit the spread of the COVID-19 virus. The GDPR context refers to the protection of personal data, where an IR-UWB radar is used instead of a video camera to count the people indoors. The radar range is 5 meters.
+The dataset is open-source and corresponds to the reference article [1] , where four scenarios are considered, involving 0 up to 20 persons randomly walking and standing in a queue, in the radar range. 
+
+![image](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/df374e21-7e99-42e4-b628-80d5b97cb697)
+
 Ultra-wideband (UWB) impulses have a duration of nanoseconds in the time domain, occupying a very large frequency bandwidth, from 500 MHz up to 7.5 GHz.
 The effective bandwidth for the radar samples set is 5.65 GHz - 7.95 GHz.
 UWB technology is used for surveillance, detection, positioning and other applications due to its fine temporal resolution and low emission power. 
-Ultra-wideband echo radar signals are used for people counting, in a COVID-19 and GDPR context, where a one-meter minimum distance between the persons is required, thus limiting their number in a given area, which is important to limit the spread of the COVID-19 virus. 
-The GDPR context refers to the protection of personal data, where an IR-UWB radar is used instead of a video camera to count the people indoors. The dataset is open-source and corresponds to the reference article [1] , where four scenarios are considered, involving 0 up to 20 persons randomly walking and standing in a queue, in the radar range. 
-
-![image](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/df374e21-7e99-42e4-b628-80d5b97cb697)
 
 **The data are pre-processed, by extracting the direct current component, by applying the Running Average method for clutter removal and to remove unwanted frequency components by filtering in the 5.65 GHz - 7.95 GHz band.**
 
@@ -29,6 +30,9 @@ The GDPR context refers to the protection of personal data, where an IR-UWB rada
 
 ![Received Signal, 20 persons in the radar range, in the last scenario](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/7de4865c-1f9b-4e29-8cb2-c15bba56fb4f)
 
+**A CNN is used to classify the radar samples into 4 classes which represent the scenarios given in the table above. The hyperparameters are: batch_size = 8, learning_rate = 0.0001, number_of_epochs =15. The accuracy results are given in the following snapshot:**
+
+![image](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/aab3c140-482a-4297-8563-b68091abc9a4)
 
 
 
