@@ -26,7 +26,7 @@ UWB technology is used for surveillance, detection, positioning and other applic
 
 ![Received Signal, 20 persons in the radar range, in the last scenario](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/7de4865c-1f9b-4e29-8cb2-c15bba56fb4f)
 
-**The dataset is split in training data, validation data and test data. The data are normalized, by using the mean and standard deviation of the training data. A CNN is used to classify the radar samples into 4 classes which represent the scenarios given in the table above. The hyperparameters are: batch_size = 8, learning_rate = 0.0001, number_of_epochs =15, using early stopping by monitoring the training loss. The accuracy results are given in the following snapshot:**
+**The dataset is split in training data, validation data and test data. The data are normalized, by using the mean and standard deviation of the training data. A CNN is used to classify the radar samples into 4 classes which represent the scenarios given in the table above. The hyperparameters are: batch_size = 8, learning_rate = 0.0001, number_of_epochs = 15, using early stopping by monitoring the training loss. The network's layers and the number of parameters on each layer, plus the accuracy results are given in the following snapshot:**
 
 ![image](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/aab3c140-482a-4297-8563-b68091abc9a4)
 ![Screenshot from 2023-08-15 17-25-56](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/5d406076-186f-4003-b9a9-12da6874d0eb)
