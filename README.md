@@ -33,6 +33,22 @@ UWB technology is used for surveillance, detection, positioning and other applic
 **The dataset is split in training data, validation data and test data. The data are normalized, by using the mean and standard devision of the training data. A CNN is used to classify the radar samples into 4 classes which represent the scenarios given in the table above. The hyperparameters are: batch_size = 8, learning_rate = 0.0001, number_of_epochs =15, using early stopping by monitoring the training loss. The accuracy results are given in the following snapshot:**
 
 ![image](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/aab3c140-482a-4297-8563-b68091abc9a4)
+![Screenshot from 2023-08-15 17-25-56](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/5d406076-186f-4003-b9a9-12da6874d0eb)
+
+
+**DRAWBACKS**
+
+1. One drawback is the class imbalance, which may cause a problem when trying to make predictions for classes that have fewer samples. A solution is to augment the existing data, meaning generating new radar samples, either by adding noise, by using a Generative Adversial Network, or another method. For example, by using only the number of scenarios as the number of classes, the distribution of the number of samples for each class is the following:
+
+![labels_distribution](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/9a2a2b10-1f4d-42ea-bdf0-ee040e421501)
+
+also, for the number of people in each scenario:
+
+![Screenshot from 2023-08-15 17-57-43](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/8ead450e-3008-4802-aecd-f121fff1186b)
+
+2. Another drawback is the high number of classes, when classifying the number of persons and the scenario. A solution could be a stacking of models, one to predict the scenario, the other to predict the number of people in the radar range, but even so, I think by only classyfing the number of people, the number of classes is a little high. 
+
+
 
 
 
