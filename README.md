@@ -1,6 +1,7 @@
 # PEOPLE COUNTING IN A COVID-19 AND GDPR CONTEXT USING IR-UWB RADAR SIGNALS
 
 **PURPOSE AND CONTEXT**
+
 This repository presents a method for people counting using IR-UWB radar signals, in the COVID-19 and GDPR context. 
 The purpose is the monitoring of the number of people  inside a room, where a one-meter minimum distance between the persons is required for limiting their number in a given area, which is important to limit the spread of the COVID-19 virus. The GDPR context refers to the protection of personal data, where an IR-UWB radar is used instead of a video camera to count the people indoors. The radar range is 5 meters.
 The dataset is open-source and corresponds to the reference article [1] , where four scenarios are considered, involving 0 up to 20 persons randomly walking and standing in a queue. The raw data is formatted to JSON files and then stored in the PostgreSQL database. 
