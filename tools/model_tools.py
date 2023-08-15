@@ -2,10 +2,110 @@ import torch
 import torch.nn as nn
 from torch.utils.data import  DataLoader, random_split, TensorDataset
 import pytorch_lightning as pl 
-from pytorch_lightning.callbacks import EarlyStopping, LearningRateFinder
+from pytorch_lightning.callbacks import EarlyStopping
 import torchmetrics
-import  matplotlib.pyplot as plt
+from tools.postgresql_operations import read_table_postgresql
+import datetime
+import os 
+import json
 
+class FinalPipelineCNNTrainning:
+    def __init__(self, batch_size) -> None:
+        self.batch_size = batch_size
+
+    def extract_data_db(self, columns, table_name, database_config , limit):
+        """Extracts data from the database
+        Args:
+            columns (list[strings]): the names of the columns to be extracted from the DB 
+            table_name (string): the table we want to extract data from
+            database_config (dict): the database connection configuration like {
+                                                                            'host': string,
+                                                                            'port': int,
+                                                                            'dbname': string,
+                                                                            'user': string,
+                                                                            'password': string
+                                                                            }
+            limit (int): the number of rows to be extracted from the table name
+        Returns:
+            labels : list of labels
+            data   : list of data arrays
+        """
+        headers, dataset = read_table_postgresql(columns=columns, table_name=table_name, 
+                                                database_config=database_config, limit=limit)
+        labels, data = list(zip(*dataset))
+        self.num_classes = len(set(labels))
+        return labels, data 
+    
+    def transform_data(self, labels, labels_dict, data):
+        """Encodes labels and transform data to torch arrays
+        Args:
+            labels           : the lables list 
+            label_dict (dict): the labels encoding 
+                            such as {'1' : 0, '2' : 1, '3' : 2, '4' : 3 } where keys are original labels and values are the encoded labels
+        Returns:
+            labels_  : list of torch tensors representing the encoded lables    
+            data     : list of torch arrays, each row representing a sample, each column a feature 
+        """
+        labels = [labels_dict[l[0]] for l in labels]
+        labels_ = torch.tensor(labels)
+        data = torch.tensor(data)
+        return labels_, data
+    
+    def create_dataloader(self, data, labels):
+        """Creates a TensorDataset, normalizes the data, splits the data into training, validation and test data
+        and creates training, validation and test dataloaders"""
+        self.dataloader = CustomDataloader(input_data=data, labels=labels, batch_size=self.batch_size)
+        return self.dataloader
+    
+    def create_cnn_model(self, lr = 1e-4):
+        """Creates a Convolutional Neural Network having as attributes the batch size, the number of classes and the learning rate default to 0.0001"""
+        self.model = CNN(batch_size=self.batch_size, num_classes=self.num_classes, lr = lr)
+
+    def train_model(self, max_epochs, min_epochs, debug, logger):
+        """Trains the model on a minimum of min_epochs and a maximum of max_epochs
+
+        Args:
+            model (model object): The CNN model 
+            max_epochs (int): maximum number of training epochs
+            min_epochs (int): minimum number of training epochs
+            debug (boolean): enables fast_dev_run attribute in the trainer class
+            logger (TensorBoardLogger): the TensorBoard Logger
+        """
+        self.trainer = TrainModel(dataloader=self.dataloader,model= self.model)
+        self.trainer.train_model(min_epochs = min_epochs, max_epochs = max_epochs, debug=debug, logger=logger)
+    
+    def evaluate_model(self):
+        """Evaluates the model on the test dataset and compares training, validation and test accuracy"""
+        self.trainer.evaluate_model()
+        acc_train, acc_val, acc_test = self.trainer.compare_accuracies()
+        return acc_train, acc_val, acc_test
+    
+    def save_model(self, model_name, version):
+        """Saves the model's parameters along with the model name, version, 
+        datetime, mean of the training data, standard deviation of the training data"""
+        json_file_path = f"./models/{model_name}_v{version}/info_{version}"
+        self.trainer.save_weights(version, model_name)
+        info= {
+                "model_name" : model_name,
+                "version" : version,
+                "datetime" : datetime.datetime.now().strftime("%Y_%m_%d-%H_%M"),
+                "mean" : getattr(self.dataloader, "mean").numpy().tolist(),
+                "std"  : getattr(self.dataloader, "std").numpy().tolist(), 
+                }
+        with open(json_file_path, "w") as json_file:
+            json.dump(info, json_file, indent = 4)
+
+    def forward(self, columns, table_name, database_config, label_dict, model_name, version,
+                    max_epochs, min_epochs,logger, debug = False ):
+        """Runs the data extraction, data transformation, dataloader creation, model creation, 
+        model training, evaluation and parameters saving"""
+        labels, data = self.extract_data_db(columns, table_name, database_config, limit = None)
+        labels_, data_ = self.transform_data(labels, label_dict, data)
+        self.create_dataloader(data_, labels_)
+        self.create_cnn_model()
+        self.train_model(max_epochs=max_epochs, min_epochs=min_epochs, debug=debug, logger=logger )
+        self.evaluate_model()
+        self.save_model(model_name, version)
 
 class CNN(pl.LightningModule):
     """Creates a Convolutional Neural Network with 5 convolution layers, 2 Max Pooling layers and 2 Fully connected layers
@@ -55,7 +155,6 @@ class CNN(pl.LightningModule):
         loss = self.loss_fc(outputs, y)
         self.log(f"train_loss", loss, prog_bar=True)
         acc = self.accuracy_metric(outputs, y)
-        self.log(f"train_acc", acc, on_epoch=True, prog_bar=True)
         self.train_acc_tensor.append(acc)
         return loss
     
@@ -63,9 +162,7 @@ class CNN(pl.LightningModule):
         x, y = batch
         outputs = self.forward(x)
         loss = self.loss_fc(outputs, y)
-        self.log(f"val_loss", loss, prog_bar=True)
         self.val_acc = self.accuracy_metric(outputs, y)
-        self.log(f"val_acc", self.val_acc, on_epoch=True, prog_bar=True)
         self.val_acc_tensor.append(self.val_acc)
         return loss
     
@@ -73,53 +170,56 @@ class CNN(pl.LightningModule):
         x, y = batch
         outputs = self.forward(x)
         loss = self.loss_fc(outputs, y)
-        self.log(f"test_loss", loss)
         self.test_acc = self.accuracy_metric(outputs, y)
-        self.log(f"test_acc", self.test_acc, on_epoch=True, prog_bar=True)
         self.test_acc_tensor.append(self.test_acc)
         return loss
     
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr = self.learning_rate)
         return optimizer
-
-    def on_test_epoch_end(self):
-        self.log("test_acc_epoch", self.test_acc, on_epoch=True, prog_bar=True)
     
-    def on_validation_epoch_end(self):
-        self.log("val_acc_epoch", self.val_acc, on_epoch=True, prog_bar=True)
-
-
-
 class ProcessData:
-    def __init__(self, data , labels, label_dict):
-        self.label_dict = label_dict
+    def __init__(self, data, mean, std):
         self.data = data 
-        self.labels = labels
-
-    def normalize_data(self, data):
+        
+    # all the processing steps 
+    # PCA feature extraction 
+    # normalization 
+    def normalize_data(self):
         """Transforms data to torch tensors and normalize them between 0 and 1"""
-        data = torch.tensor(data)
-        return torch.nn.functional.normalize(data)
-    
-    def process_data(self):
-        labels = [self.label_dict[l[0]] for l in self.labels]
-        labels_ = torch.tensor(labels)
-        data_norm = self.normalize_data(self.data)
-        return data_norm, labels_
+        normalized_data = (self.data - self.mean) / self.std
+        return normalized_data
 
-class CustomDataset(pl.LightningDataModule):
-    def __init__(self, input_data, batch_size):
-        super(CustomDataset, self).__init__()
-        self.input_data = input_data
+class CustomDataloader(pl.LightningDataModule):
+    def __init__(self, input_data, labels, batch_size):
+        super(CustomDataloader, self).__init__()
         self.batch_size = batch_size
-        train_size = int(0.7 * len(self.input_data))
-        val_size = int(0.5 * (len(self.input_data) - train_size))
-        sizes = (train_size, len(self.input_data) - train_size)
-        sizes_val = (len(self.input_data) - train_size - val_size, val_size)
-        self.train_data, self.test_data = random_split(self.input_data, lengths = sizes)
-        self.val_data, self.test_data = random_split(self.test_data, lengths = sizes_val)
+        dataset = TensorDataset(input_data, labels)
+        train_data, val_data, test_data = self.split_data(dataset=dataset)
+        self.train_data = self.normalize_data(train_data, mode = 'training')
+        self.val_data = self.normalize_data(val_data)
+        self.test_data = self.normalize_data(test_data)
 
+    def split_data(self, dataset):
+        """Splits TensorDataset type of dataset into training data, validation data and test data"""
+        train_size = int(0.7 * len(dataset))
+        val_size = int(0.5 * (len(dataset) - train_size))
+        sizes = (train_size, len(dataset) - train_size)
+        sizes_val = (len(dataset) - train_size - val_size, val_size)
+        train_data, test_data = random_split(dataset, lengths = sizes)
+        val_data, test_data = random_split(test_data, lengths = sizes_val)
+        return train_data, val_data, test_data
+
+    def normalize_data(self, data, mode = None):
+        """Normalizes data between 0 and 1 and saves the mean and standard deviation from the training data"""
+        data_tensors = torch.stack([sample for sample, _ in data])
+        labels = torch.stack([l for _, l in data])
+        if mode ==  'training':
+            self.mean = torch.mean(data_tensors)
+            self.std = torch.std(data_tensors)
+        norm_data = (data_tensors -  self.mean) / self.std 
+        return TensorDataset(norm_data, labels)
+    
     def train_dataloader(self):
         return DataLoader(self.train_data, batch_size=self.batch_size, num_workers=8)
     
@@ -128,20 +228,13 @@ class CustomDataset(pl.LightningDataModule):
 
     def test_dataloader(self):
         return DataLoader(self.test_data, batch_size=self.batch_size)
+    
+    def save_normalization_parameters(self):
+        return self.mean, self.std
 
-class CreateDataloader():
-    def __init__(self, input_data, labels, batch_size):
-        self.input_data = input_data
-        self.labels = labels 
-        self.batch_size = batch_size
-
-    def create_dataloader(self):
-        dataset = TensorDataset(self.input_data, self.labels)
-        dataset = CustomDataset(dataset, batch_size= self.batch_size)
-        return dataset
 
 class TrainModel():
-    def __init__(self, dataloader, model,):
+    def __init__(self, dataloader, model):
         self.loss_vect = 0
         self.dataloader = dataloader
         self.model = model
@@ -150,7 +243,7 @@ class TrainModel():
         self.trainer = pl.Trainer(devices="auto", accelerator="auto", 
                                 max_epochs= max_epochs, min_epochs=min_epochs, 
                                 fast_dev_run=debug, log_every_n_steps=10, logger = logger,
-                                callbacks=[EarlyStopping(monitor="train_acc_epoch")], check_val_every_n_epoch=4)
+                                callbacks=[EarlyStopping(monitor="train_loss")], check_val_every_n_epoch=3)
         self.trainer.fit(self.model, self.dataloader.train_dataloader())
         self.trainer.validate(model=self.model, dataloaders=self.dataloader.val_dataloader(), verbose=True)
     
@@ -159,7 +252,8 @@ class TrainModel():
         print(pl.utilities.model_summary.summarize(self.model))
     
     def save_weights(self, version, model_name):
-        self.trainer.save_checkpoint("./models/{}_v{}.ckpt".format(model_name, version))
+        model_parameters_path = f"./models/{model_name}_v{version}/{model_name}_v{version}"
+        self.trainer.save_checkpoint(model_parameters_path)
 
     def compare_accuracies(self):
         train_accuracy = getattr(self.model, 'train_acc_tensor')
@@ -174,7 +268,13 @@ class TrainModel():
 
 
 
+class CNNModelDeployment:
+    def __init__(self, model_path, label_dict):
+        self.model = CNN.load_from_checkpoint(model_path)
 
-
-
-
+    def feed_data(self, data):
+        self.model.eval()
+        outputs = self.model(data)
+        return outputs
+    
+    
