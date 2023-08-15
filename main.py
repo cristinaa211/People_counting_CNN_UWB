@@ -13,7 +13,7 @@ if __name__ == "__main__":
     logger = TensorBoardLogger(log_dir, name = model_name)
     tb_process = subprocess.Popen(['tensorboard', '--logdir', log_dir, '--port', '6006'])    
     columns,table_name =  "label, radar_sample ","processed_data"
-    database_config = {'host': 'localhost', 'port': 5432, 'dbname': 'UWB_Radar_Samples', 'user': 'cristina','password': 'cristina'}
+    database_config = {'host': 'localhost', 'port': 5432, 'dbname': 'UWB_Radar_Samples', 'user': 'cristina','password': ''}
     batch_size, min_epochs, max_epochs = 8, 15, 28
     debug = False
     limit = None
