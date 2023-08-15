@@ -35,10 +35,20 @@ To reduce data dimennsionality and to keep the useful information in the same ti
 
 **TRAINING AND EVALUATING THE MODEL**
 
+**ONLY CONSIDERING THE SCENARIO**
+
 The dataset is split in training data, validation data and test data. The data are normalized, by using the mean and standard deviation of the training data. A CNN is used to classify the radar samples into 4 classes which represent the scenarios given in the table above. The hyperparameters are: batch_size = 8, learning_rate = 0.0001, number_of_epochs = 15, using early stopping by monitoring the training loss. The network's layers and the number of parameters on each layer, plus the accuracy results are given in the following snapshot:
 
 ![image](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/aab3c140-482a-4297-8563-b68091abc9a4)
 ![Screenshot from 2023-08-15 17-25-56](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/5d406076-186f-4003-b9a9-12da6874d0eb)
+
+**CONSIDERING THE NUMBER OF PEOPLE**
+
+For the same data but labelled by the number of persons in the radar range, and  the same network's architecture, the hyperparameters in this case are: batch_size = 4, number of epochs = 40, learning rate = 0.0001. In the figure you will find the accuracies and the network's layers:
+
+
+![image](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/f56ffa21-3773-437c-9a42-2e16c4eb99f8)
+
 
 **DRAWBACKS**
 
