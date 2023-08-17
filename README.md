@@ -67,8 +67,8 @@ The final prediction function being "predict_function" in the prediction_functio
 **DRAWBACKS**
 
 1. One drawback is the class imbalance, which may cause a problem when trying to make predictions for classes that have fewer samples. A solution is to augment the existing data, meaning generating new radar samples, either by adding noise, by using a Generative Adversial Network, or another method. For example, by using only the number of scenarios as the number of classes, the distribution of the number of samples for each class is the following:
+![labels_distribution](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/318e73c3-005a-449b-9b0b-a51bc998e9c1)
 
-![labels_distribution](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/9a2a2b10-1f4d-42ea-bdf0-ee040e421501)
 
 also, for the number of people in each scenario:
 
