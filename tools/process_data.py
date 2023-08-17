@@ -1,20 +1,24 @@
-import pandas as pd
-from pyspark import SparkContext, types
-from pyspark.sql import SQLContext, Row, SparkSession
 from scipy import signal
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.decomposition import PCA
-from pyspark.sql import SparkSession, types
 
-def process_data_pipeline(sig, fs):
-    """Returns processed radar sample"""
-    data_1 = extract_dc_component(sig)
+
+def process_data_pipeline(sig, fs = 39*1e9):
+    """Returns processed radar sample
+    Args:
+    sig  : the radar sample which is numpy array of float values 
+    fs   : the sampling frequency , default 39 GHz
+    Returns:
+        data_3 : the processed radar sample"""
+    if sig.shape != (200 , 1280) : 
+        sig = np.reshape(sig, (200, 1280))
+    data_1 = zero_mean_centering(sig)
     data_2 = moving_average_clutter_removal_2d(data_1, 5)
     data_3 = butter_bandpass_filter(data_2, 5.65*1e9, 7.95*1e9, fs)
     return data_3
 
-def apply_pca(data, n_components):
+def apply_pca(data, n_components = 50):
     """Apllies Principal Component Analysis on the data and return n_components principal components"""
     pca_data = PCA(n_components = n_components).fit_transform(data)
     return pca_data
@@ -106,54 +110,10 @@ def compute_bandwidth(sig_, sampling_rate, frequency_range=None):
     bandwidth = [min(freq), max(freq)]
     return bandwidth
 
-def extract_dc_component(sig):
+def zero_mean_centering(sig):
     """Extracts the direct current component from the signal"""
     sig_prep = sig - np.mean(sig)
     return sig_prep
 
-def spark_read_json(json_file_path):
-    spark = SparkSession.builder.master("local").appName("Read_Json_File")\
-            .getOrCreate()
-    df = spark.read.json(json_file_path, multiLine=True)
-    df.show(truncate = 0)
 
-def test_spark():
-    spark = SparkSession.builder \
-        .master("local[1]") \
-        .appName("SparkByExamples.com") \
-        .getOrCreate() 
-    data = [('James','','Smith','1991-04-01','M',3000),
-    ('Michael','Rose','','2000-05-19','M',4000),
-    ('Robert','','Williams','1978-09-05','M',4000),
-    ('Maria','Anne','Jones','1967-12-01','F',4000),
-    ('Jen','Mary','Brown','1980-02-17','F',-1)
-    ]
-
-    columns = ["firstname","middlename","lastname","dob","gender","salary"]
-    df = spark.createDataFrame(data=data, schema = columns)
-    df.show()
-
-def read_text_file(filename):
-    """Read json file as a text file with pyspark"""
-    spark = SparkSession.builder.master("local").appName("Read_Json_File")\
-            .getOrCreate()
-    lines = spark.sparkContext.textFile(filename)
-    processed_lines = lines.map(lambda line: line + "," if not line.endswith("}") else line)
-    json_array = "[" + processed_lines.reduce(lambda a, b: a + b) + "]"
-    json_rdd = spark.sparkContext.parallelize([json_array])
-    df = spark.read.json(json_rdd)
-    output_df = df.select("label", "radar_sample")
-    output_df.show()
-
-
-def to_pyspark_dataframe(data, columns):
-    """Creates a spark dataframe from data, having as columns the columns argument"""
-    spark = SparkSession.builder.appName("SaveToSparkDF").getOrCreate()
-    schema = types.StructType([
-                types.StructField(columns[0], types.StringType(), True),
-                types.StructField(columns[1], types.StringType(), True),
-                types.StructField(columns[2], types.ArrayType(types.ArrayType(types.DoubleType(), True), True), True)        ])
-    df = spark.createDataFrame(data, schema = schema)
-    df.printSchema()
-    return df
 

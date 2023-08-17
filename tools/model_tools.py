@@ -6,8 +6,9 @@ from pytorch_lightning.callbacks import EarlyStopping
 import torchmetrics
 from tools.postgresql_operations import read_table_postgresql
 import datetime
-import os 
 import json
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
 class FinalPipelineCNNTrainning:
     def __init__(self, batch_size) -> None:
@@ -54,6 +55,7 @@ class FinalPipelineCNNTrainning:
         self.num_classes = len(set(labels_))
         labels_ = torch.tensor(labels_)
         data = torch.tensor(data)
+        self.features_shape = torch._shape_as_tensor(data)
         return labels_, data
     
     def create_dataloader(self, data, labels):
@@ -64,7 +66,8 @@ class FinalPipelineCNNTrainning:
     
     def create_cnn_model(self, lr = 1e-4):
         """Creates a Convolutional Neural Network having as attributes the batch size, the number of classes and the learning rate default to 0.0001"""
-        self.model = CNN(batch_size=self.batch_size, num_classes=self.num_classes, lr = lr)
+        self.learning_rate = lr
+        self.model = CNN(batch_size=self.batch_size, num_classes=self.num_classes, lr = self.learning_rate)
 
     def train_model(self, max_epochs, min_epochs, debug, logger):
         """Trains the model on a minimum of min_epochs and a maximum of max_epochs
@@ -87,7 +90,7 @@ class FinalPipelineCNNTrainning:
     def save_model(self, model_name, version):
         """Saves the model's parameters along with the model name, version, 
         datetime, mean of the training data, standard deviation of the training data"""
-        json_file_path = f"./models/{model_name}_v{version}/info_{version}"
+        json_file_path = f"./models/{model_name}_v{version}/info.json"
         self.trainer.save_weights(version, model_name)
         info= {
                 "model_name" : model_name,
@@ -95,6 +98,11 @@ class FinalPipelineCNNTrainning:
                 "datetime" : datetime.datetime.now().strftime("%Y_%m_%d-%H_%M"),
                 "mean" : getattr(self.dataloader, "mean").numpy().tolist(),
                 "std"  : getattr(self.dataloader, "std").numpy().tolist(), 
+                "batch_size" : self.batch_size,
+                "learning_rate" : self.learning_rate,
+                "num_classes" : self.num_classes,
+                "feature_set_shape" : self.features_shape,
+                "loss_function" : getattr(self.model, "loss_fc"),
                 "training_accuracy" : self.acc_train.cpu().numpy().tolist(),
                 "validation_accuracy": self.acc_val.cpu().numpy().tolist(),
                 "test_accuracy" : self.acc_test.cpu().numpy().tolist()
@@ -254,13 +262,16 @@ class TrainModel():
                                 callbacks=[EarlyStopping(monitor="train_loss")], check_val_every_n_epoch=3)
         self.trainer.fit(self.model, self.dataloader.train_dataloader())
         self.trainer.validate(model=self.model, dataloaders=self.dataloader.val_dataloader(), verbose=True)
-    
+        self.min_epochs = min_epochs
+        self.max_epochs = max_epochs
+
     def evaluate_model(self):
         self.trainer.test(self.model, self.dataloader.test_dataloader())
         print(pl.utilities.model_summary.summarize(self.model))
     
     def save_weights(self, version, model_name):
-        model_parameters_path = f"./models/{model_name}_v{version}/{model_name}_v{version}"
+        model_parameters_path = f"./models/{model_name}_v{version}/{model_name}_v{version}.pkl"
+        torch.onnx.export(self.model, (self.min_epochs, self.max_epochs)) 
         self.trainer.save_checkpoint(model_parameters_path)
 
     def compare_accuracies(self):
@@ -277,12 +288,26 @@ class TrainModel():
 
 
 class CNNModelDeployment:
-    def __init__(self, model_path, label_dict):
-        self.model = CNN.load_from_checkpoint(model_path)
+    def __init__(self, model_path, num_classes):
+        self.model_path = model_path
+        self.num_classes = num_classes
 
-    def feed_data(self, data):
+    def load_model(self):
+        if self.model_path.endswith("pkl"):
+            model = CNN(num_classes=self.num_classes)
+            self.model = model.load_from_checkpoint(self.model_path, num_classes = self.num_classes).to(device)
+        elif self.model_path.endswith("oonx"):
+            self.model = torch.onnx.load(self.model_path)
+            # Check that the model is well formed
+            nn.onnx.checker.check_model(self.model)
+            # Print a human readable representation of the graph
+            print(nn.onnx.helper.printable_graph(self.modeldel.graph))
+    
+    def predict(self, data):
+        self.load_model()
         self.model.eval()
         outputs = self.model(data)
-        return outputs
+        output = torch.argmax(outputs)
+        return output
     
     

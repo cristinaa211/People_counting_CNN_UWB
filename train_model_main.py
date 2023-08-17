@@ -6,6 +6,13 @@ import  subprocess
 import pandas as pd
 import matplotlib.pyplot as plt
 
+def analyse_data_balance(labels):
+    """Plots the frequency of samples and their labels"""
+    pd.DataFrame(labels).value_counts().plot(kind="bar")
+    plt.xlabel("Labels")
+    plt.ylabel("Number of samples")
+    plt.show()
+
 
 if __name__ == "__main__":
     model_name, version = "cnn_detailed_label" ,  1
@@ -22,10 +29,7 @@ if __name__ == "__main__":
     # label_dict = {'1' : 0, '2' : 1, '3' : 2, '4' : 3}
     pipeline = FinalPipelineCNNTrainning(batch_size)
     # labels_, data = pipeline.extract_data_db(columns, table_name, database_config, limit=None)
-    # df_labels = pd.DataFrame(labels_).value_counts().plot(kind="bar")
-    # plt.xlabel("Labels")
-    # plt.ylabel("Amount of samples")
-    # plt.show()
+    # analyse_data_balance(labels_)
     pipeline.forward(columns=columns,table_name= table_name, database_config=database_config,model_name= model_name,version= version, 
                      label_dict=None, max_epochs=max_epochs, min_epochs= min_epochs, debug=False,logger=logger)
     tb_process.kill()

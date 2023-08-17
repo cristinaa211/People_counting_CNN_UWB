@@ -1,26 +1,7 @@
-from tools.read_files import read_files_multiple_directories
+from tools.read_files import read_files_multiple_directories,load_float_values
 import os 
 import json
-import numpy as np
 
-def read_txt_file_data(filename):
-    """Reads the content of a text file and returns the content as a string"""
-    data = []
-    with open(filename) as input_file:
-        lines = input_file.readlines() 
-        for line in lines:
-            data.append(line)
-    return data 
-
-def load_float_values(file_path):
-    """Returns the content of a text file as a list of float values"""
-    try:
-        float_values = np.loadtxt(file_path)
-        return float_values
-    except Exception as e:
-        print(f"Error: Unable to load float values from '{file_path}'.")
-        print(f"Details: {str(e)}")
-        return []
 
 def create_json_file(content_list, file_name):
     """Creates a json file having as content "content_list" provided, which can be a list of dictionaries"""
@@ -68,4 +49,3 @@ def read_json_file(json_file_path):
     with open(json_file_path, 'r') as json_file:
         data = json.load(json_file)
     return data 
-

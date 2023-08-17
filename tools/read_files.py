@@ -1,4 +1,5 @@
 import os
+import numpy as np 
 
 def read_directories_names_in_path(path):
     """Returns a list of directories in the given path."""
@@ -29,3 +30,22 @@ def read_files_multiple_directories(path):
         return files_list
     else:
         raise ValueError("The path has no directories.")
+    
+def read_txt_file_data(filename):
+    """Reads the content of a text file and returns the content as a string"""
+    data = []
+    with open(filename) as input_file:
+        lines = input_file.readlines() 
+        for line in lines:
+            data.append(line)
+    return data 
+
+def load_float_values(file_path):
+    """Returns the content of a text file as a list of float values"""
+    try:
+        float_values = np.loadtxt(file_path)
+        return float_values
+    except Exception as e:
+        print(f"Error: Unable to load float values from '{file_path}'.")
+        print(f"Details: {str(e)}")
+        return []
