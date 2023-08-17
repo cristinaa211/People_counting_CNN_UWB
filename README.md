@@ -4,7 +4,7 @@
 
 This repository presents a method for people counting using IR-UWB radar signals, in the COVID-19 and GDPR context. 
 The purpose is the monitoring of the number of people  inside a room, where a one-meter minimum distance between the persons is required for limiting their number in a given area, which is important to limit the spread of the COVID-19 virus. The GDPR context refers to the protection of personal data, where an IR-UWB radar is used instead of a video camera to count the people indoors. The radar range is 5 meters.
-The dataset is open-source and corresponds to the reference article [1] , where four scenarios are considered, involving 0 up to 20 persons randomly walking and standing in a queue. The raw data is formatted to JSON files and then stored in the PostgreSQL database. 
+The dataset is open-source and corresponds to the reference article [1] , where four scenarios are considered, involving 0 up to 20 persons randomly walking and standing in a queue. 
 
 ![image](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/df374e21-7e99-42e4-b628-80d5b97cb697)
 
@@ -14,9 +14,18 @@ Ultra-wideband (UWB) impulses have a duration of nanoseconds in the time domain,
 The effective bandwidth for the radar samples set is 5.65 GHz - 7.95 GHz.
 UWB technology is used for surveillance, detection, positioning and other applications due to its fine temporal resolution and low emission power. 
 
-**DATA PROCESSING**
+**DATA ENGINERRING**
 
-The steps for data processing are: extracting the direct current component, applying the Running Average method for clutter removal and remove unwanted frequency components by filtering in the 5.65 GHz - 7.95 GHz band.
+The raw data is formatted to JSON files and then stored in the PostgreSQL database.
+
+The steps for data processing are:
+
+- zero-mean centering
+
+- clutter removal by applying the Running Average method 
+
+- filtering in the 5.65 GHz - 7.95 GHz band to remove unwanted frequency components
+  
 ![Radar Sample, 10 persons, people standing in a queue scenario](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/4ffa7e10-acc2-4842-bb7c-5137daa8c10b)
 
 ![Received Signal, 10 persons in the radar range, people standing in a queue scenario](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/e7b6dc47-52be-4199-a995-ebe3768f99ca)
@@ -25,9 +34,9 @@ The steps for data processing are: extracting the direct current component, appl
 
 ![Received Signal, 20 persons in the radar range, people walking in a room with 4 persons per m2 scenario](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/dad84559-0f5e-40b0-9a50-a8396d515ace)
 
-**FEATURE EXTRACTION**
+**FEATURE ENGINEERING**
 
-To reduce data dimennsionality and to keep the useful information in the same time, Principal Component Analysis method is applied on the pre-processed data.  The number of principal components that are kept is 50. The final data will then be fed to a Convolutional Neural Network. 
+To reduce data dimennsionality and to keep the useful information in the same time, Principal Component Analysis method is applied on the pre-processed data.  The number of principal components that are kept is 50. 
 
 ![Radar Sample, 20 persons, in the last scenario](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/02b1a34c-dc60-4569-8fdc-4bae5d390b59)
 
@@ -37,7 +46,7 @@ To reduce data dimennsionality and to keep the useful information in the same ti
 
 **ONLY CONSIDERING THE SCENARIO**
 
-The dataset is split in training data, validation data and test data. The data are normalized, by using the mean and standard deviation of the training data. A CNN is used to classify the radar samples into 4 classes which represent the scenarios given in the table above. The hyperparameters are: batch_size = 8, learning_rate = 0.0001, number_of_epochs = 15, using early stopping by monitoring the training loss. The network's layers and the number of parameters on each layer, plus the accuracy results are given in the following snapshot:
+The dataset is split in training data, validation data and test data. The data are scaled between [0,1], by using the mean and standard deviation of the training data. A CNN is used to classify the radar samples into 4 classes which represent the scenarios given in the table above. The hyperparameters are: batch_size = 8, learning_rate = 0.0001, number_of_epochs = 15, using early stopping by monitoring the training loss. The network's layers and the number of parameters on each layer, plus the accuracy results are given in the following snapshot:
 
 ![image](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/aab3c140-482a-4297-8563-b68091abc9a4)
 ![Screenshot from 2023-08-15 17-25-56](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/5d406076-186f-4003-b9a9-12da6874d0eb)
