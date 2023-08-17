@@ -63,8 +63,9 @@ For the same data but labelled by the number of persons in the radar range, and 
 
 This model is designed for a local machine, in the indoor location of the radar. Although, it sends an e-mail notification every 10 minutes to predict the status of the room (it implies that a screening of the radar is done every 10 minutes, and the file containing the received signals' values sent to the same personal computer).
 
-The final prediction resembles to: 
- ![Alt text](image.png)
+The final prediction template resembles to: 
+![Screenshot from 2023-08-17 22-25-22](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/37d75e7e-0084-4382-8dcd-496ec79dfdbd)
+
 
 where first the scenario is predicted by the first model, and then the number of persons is predicted by the second model.
 The final prediction function being "predict_function" in the prediction_function.py file. 
