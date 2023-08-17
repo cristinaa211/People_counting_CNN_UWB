@@ -1,6 +1,5 @@
 from postgresql_operations import read_table_postgresql
 import matplotlib.pyplot as plt
-from process_data import process_data_pipeline
 import numpy as np 
 
 def plot_radar_signal(data, title):
@@ -42,7 +41,7 @@ if __name__ == "__main__":
     'host': 'localhost',
     'port': 5432,
     'dbname': 'UWB_Radar_Samples',
-    'user': 'cristina',
+    'user': '',
     'password': ''
     }
     tables ={
@@ -53,7 +52,7 @@ if __name__ == "__main__":
             "processed_data": ["processed_data", ""]
             }
     table_name = tables["processed_data"][0]
-    # scenario =  tables["processed_data"][1]
+    scenario =  tables["processed_data"][1]
     scenario = 'in the first'
     detailed_label = 110
     number_persons = 10

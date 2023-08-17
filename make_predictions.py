@@ -10,7 +10,7 @@ def main():
     filename = ""
     email_to = "something@gmail.com"
     predict_function(filename, email_to, model_name,  model_name_2)
-    schedule.every(1).minutes.do(predict_function, filename, email_to)
+    schedule.every(10).minutes.do(predict_function, filename, email_to)
     while True:
         schedule.run_pending()
         time.sleep(1)

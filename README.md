@@ -59,6 +59,17 @@ For the same data but labelled by the number of persons in the radar range, and 
 ![image](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/f56ffa21-3773-437c-9a42-2e16c4eb99f8)
 
 
+**Shallow Deployment**
+
+This model is designed for a local machine, in the indoor location of the radar. Although, it sends an e-mail notification every 10 minutes to predict the status of the room (it implies that a screening of the radar is done every 10 minutes, and the file containing the received signals' values sent to the same personal computer).
+
+The final prediction resembles to: 
+ ![Alt text](image.png)
+
+where first the scenario is predicted by the first model, and then the number of persons is predicted by the second model.
+The final prediction function being "predict_function" in the prediction_function.py file. 
+
+
 **DRAWBACKS**
 
 1. One drawback is the class imbalance, which may cause a problem when trying to make predictions for classes that have fewer samples. A solution is to augment the existing data, meaning generating new radar samples, either by adding noise, by using a Generative Adversial Network, or another method. For example, by using only the number of scenarios as the number of classes, the distribution of the number of samples for each class is the following:
@@ -69,7 +80,6 @@ also, for the number of people in each scenario:
 
 ![Screenshot from 2023-08-15 17-57-43](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/8ead450e-3008-4802-aecd-f121fff1186b)
 
-2. Another drawback is the high number of classes, when classifying the number of persons and the scenario. A solution could be a stacking of models, one to predict the scenario, the other to predict the number of people in the radar range, but even so, I think by only classyfing the number of people, the number of classes is a little high. 
 
 
 [1] 	X. Yang, W. Yin, L. Li and L. Zhang, "Dense People Counting Using IR-UWB Radar with a Hybrid Feature Extraction Method," IEEE Geoscience and Remote Sensing Letters, vol. 16, no. 1, pp. 30-34, 2018. 
