@@ -46,7 +46,7 @@ To reduce data dimennsionality and to keep the useful information in the same ti
 
 **ONLY CONSIDERING THE SCENARIO**
 
-The dataset is split in training data, validation data and test data. The data are scaled between [0,1], by using the mean and standard deviation of the training data. A CNN is used to classify the radar samples into 4 classes which represent the scenarios given in the table above. The hyperparameters are: batch_size = 8, learning_rate = 0.0001, number_of_epochs = 15, using early stopping by monitoring the training loss. The network's layers and the number of parameters on each layer, plus the accuracy results are given in the following snapshot:
+The dataset is split in training data, validation data and test data. The data are scaled between [0,1], by using the mean and standard deviation of the training data. A CNN is used to classify the radar samples into 4 classes which represent the scenarios given in the table above. Multiple experiments are run for finding a set of good hyperparameters. The hyperparameters are: batch_size = 8, learning_rate = 0.0001, number_of_epochs = 15, using early stopping by monitoring the training loss. The network's layers and the number of parameters on each layer, plus the accuracy results are given in the following snapshot:
 
 ![image](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/aab3c140-482a-4297-8563-b68091abc9a4)
 ![Screenshot from 2023-08-15 17-25-56](https://github.com/cristinaa211/People_counting_CNN_UWB/assets/61435903/5d406076-186f-4003-b9a9-12da6874d0eb)
